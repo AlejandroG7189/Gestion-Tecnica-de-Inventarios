@@ -396,24 +396,33 @@ def formatear_base_datos():
         "¿Está seguro de que desea FORMATEAR el sistema?\n\nEsto eliminará permanentemente todos los inventarios, usuarios y registros.")
     
     if confirmar:
-        # Segunda advertencia para evitar errores
+        # Segunda advertencia
         reconfirmar = messagebox.askquestion("CONFIRMACIÓN FINAL", 
             "Esta acción NO se puede deshacer. ¿Eliminar archivo 'sistema_tecnico.db' ahora?")
         
         if reconfirmar == 'yes':
             try:
-                # 1. Cerramos cualquier conexión activa si fuera necesario (opcional en SQLite simple)
-                # 2. Intentamos borrar el archivo
+                # Forzamos una recolección de basura para cerrar cualquier puntero suelto a la DB
+                import gc
+                gc.collect() 
+
                 if os.path.exists("sistema_tecnico.db"):
+                    # Intentamos renombrarlo antes de borrar (truco para verificar acceso)
+                    # o borrar directamente
                     os.remove("sistema_tecnico.db")
                 
                 messagebox.showinfo("Reinicio", "Base de datos eliminada. El programa se cerrará para aplicar los cambios.")
                 
-                # 3. Cerramos el programa para que al abrirlo de nuevo se cree la DB limpia
-                os._exit(0) 
+                # Usamos sys.exit() en lugar de os._exit() para un cierre más controlado
+                root.destroy()
+                sys.exit()
                 
+            except PermissionError:
+                messagebox.showerror("Error de Acceso", 
+                    "No se pudo eliminar la base de datos porque está en uso.\n"
+                    "Cierra el programa manualmente y elimina el archivo 'sistema_tecnico.db' de la carpeta.")
             except Exception as e:
-                messagebox.showerror("Error", f"No se pudo eliminar el archivo. Asegúrese de que no esté abierto en otro programa.\nDetalle: {e}")
+                messagebox.showerror("Error", f"Ocurrió un error inesperado: {e}")
 
 def abrir_sistema():
     main_win = tk.Toplevel()
@@ -496,6 +505,9 @@ tk.Button(root, text="ENTRAR", command=login, bg="#cf0024", fg="white",
 
 
 root.mainloop()
+
+
+
 
 
 
