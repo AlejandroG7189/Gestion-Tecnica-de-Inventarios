@@ -1,1 +1,0 @@
-# Gestion-Tecnica-de-Inventarios
